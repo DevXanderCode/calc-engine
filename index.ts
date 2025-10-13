@@ -14,9 +14,31 @@ const isOperator = (s: any): s is Operators => {
   return false;
 };
 
+function throwSyntaxError(
+  firstOpn: number | undefined,
+  secondOpn: number | undefined,
+  operator: Operators | undefined
+) {
+  if (!firstOpn || !secondOpn || !operator || operator === "(") {
+    throw new Error("Syntax error (invalid expression)");
+  }
+}
+
 const calcEngine = (input: string) => {
   // TODO: create function to parse input string to array
-  const test = [2, "+", 3, "*", 8, "/", 4, "^", 1, "-", 5, "^", 2]; // expected answer: -17
+  const test1 = [2, "+", 3, "*", 8, "/", 4, "^", 1, "-", 5, "^", 2]; // expected answer: -17
+
+  const test2 = [4, "+", 18, "/", "(", 9, "-", 3, ")"]; // expected answer: 7
+
+  const test3 = [0, "-", "(", 100, "-", 16, ")", "/", 2]; // expected answer: -42 TODO: doesn't work yet
+
+  const test4 = [3, "+", 2, "-", 5, "+", 7]; // expected answer: 7
+
+  const test5 = [3, "+", 2, "-", 5, "-", 7]; // expected answer: -7
+
+  const test = ["(", 3, ")"];
+
+  //   const test = []; // ex
 
   const operandStack: number[] = [];
   const operatorStack: Operators[] = [];
@@ -26,19 +48,24 @@ const calcEngine = (input: string) => {
       operandStack.push(op);
     } else if (isOperator(op)) {
       let lastOperator = operatorStack.at(-1);
+      console.log("current operator", op);
       if (operatorStack.length === 0) {
         operatorStack.push(op);
       } else if (lastOperator && priorityMap[lastOperator] < priorityMap[op]) {
         operatorStack.push(op);
       } else {
-        while (lastOperator && priorityMap[lastOperator] >= priorityMap[op]) {
+        while (
+          lastOperator &&
+          lastOperator !== "(" &&
+          priorityMap[lastOperator] >= priorityMap[op]
+        ) {
           const secondOpn = operandStack.pop();
           const firstOpn = operandStack.pop();
           const curOpr = operatorStack.pop();
 
           //   console.log(firstOpn, secondOpn, curOpr);
 
-          if (!firstOpn || !secondOpn || !curOpr) {
+          if (!firstOpn || !secondOpn || !curOpr || curOpr === "(") {
             throw new Error("Syntax error (invalid expression)");
           }
 
@@ -47,17 +74,47 @@ const calcEngine = (input: string) => {
         }
         operatorStack.push(op);
       }
+    } else if (op === ")" && operatorStack.includes("(")) {
+      let lastOperator = operatorStack.at(-1);
+      while (lastOperator && lastOperator !== "(") {
+        const secondOpn = operandStack.pop();
+        const firstOpn = operandStack.pop();
+        const curOpr = operatorStack.pop();
+
+        console.log(firstOpn, secondOpn, curOpr);
+
+        if (
+          firstOpn == null ||
+          secondOpn == null ||
+          !curOpr ||
+          curOpr === "("
+        ) {
+          throw new Error("Syntax error (invalid expression)");
+        }
+
+        operandStack.push(evaluate(firstOpn, curOpr, secondOpn));
+        lastOperator = operatorStack.at(-1);
+      }
+      operatorStack.pop();
     } else {
       throw new Error(`Syntax error (invalid input ${op})`);
     }
   }
+
+  console.log("operand stack", operandStack);
+  console.log("operator stack", operatorStack);
 
   for (let i = operatorStack.length - 1; i >= 0; i--) {
     const secondOpn = operandStack.pop();
     const firstOpn = operandStack.pop();
     const operator = operatorStack[i];
 
-    if (!firstOpn || !secondOpn || !operator) {
+    if (
+      firstOpn == null ||
+      secondOpn == null ||
+      !operator ||
+      operator === "("
+    ) {
       throw new Error("Syntax error (invalid expression)");
     }
 
@@ -74,9 +131,10 @@ const calcEngine = (input: string) => {
 
 function evaluate(
   firstOpn: number,
-  opr: Omit<Operators, "(">,
+  opr: Exclude<Operators, "(">,
   secondOpn: number
 ) {
+  console.log("eval called ", firstOpn, opr, secondOpn);
   switch (opr) {
     case "+":
       return firstOpn + secondOpn;
