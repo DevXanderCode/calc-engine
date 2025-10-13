@@ -9,19 +9,23 @@ const priorityMap = {
 
 type Operators = [keyof typeof priorityMap][number];
 
+type ValidOperators = Exclude<Operators, "(">;
+
 const isOperator = (s: any): s is Operators => {
   if (typeof s === "string" && priorityMap?.[s as Operators]) return true;
   return false;
 };
 
-function throwSyntaxError(
+function assertValidExpression(
   firstOpn: number | undefined,
   secondOpn: number | undefined,
   operator: Operators | undefined
-) {
-  if (!firstOpn || !secondOpn || !operator || operator === "(") {
+): [number, number, ValidOperators] {
+  if (firstOpn == null || secondOpn == null || !operator || operator === "(") {
     throw new Error("Syntax error (invalid expression)");
   }
+
+  return [firstOpn, secondOpn, operator];
 }
 
 const calcEngine = (input: string) => {
@@ -59,15 +63,15 @@ const calcEngine = (input: string) => {
           lastOperator !== "(" &&
           priorityMap[lastOperator] >= priorityMap[op]
         ) {
-          const secondOpn = operandStack.pop();
-          const firstOpn = operandStack.pop();
-          const curOpr = operatorStack.pop();
+          const $secondOpn = operandStack.pop();
+          const $firstOpn = operandStack.pop();
+          const $curOpr = operatorStack.pop();
 
-          //   console.log(firstOpn, secondOpn, curOpr);
-
-          if (!firstOpn || !secondOpn || !curOpr || curOpr === "(") {
-            throw new Error("Syntax error (invalid expression)");
-          }
+          const [firstOpn, secondOpn, curOpr] = assertValidExpression(
+            $firstOpn,
+            $secondOpn,
+            $curOpr
+          );
 
           operandStack.push(evaluate(firstOpn, curOpr, secondOpn));
           lastOperator = operatorStack.at(-1);
@@ -77,20 +81,15 @@ const calcEngine = (input: string) => {
     } else if (op === ")" && operatorStack.includes("(")) {
       let lastOperator = operatorStack.at(-1);
       while (lastOperator && lastOperator !== "(") {
-        const secondOpn = operandStack.pop();
-        const firstOpn = operandStack.pop();
-        const curOpr = operatorStack.pop();
+        const $secondOpn = operandStack.pop();
+        const $firstOpn = operandStack.pop();
+        const $curOpr = operatorStack.pop();
 
-        console.log(firstOpn, secondOpn, curOpr);
-
-        if (
-          firstOpn == null ||
-          secondOpn == null ||
-          !curOpr ||
-          curOpr === "("
-        ) {
-          throw new Error("Syntax error (invalid expression)");
-        }
+        const [firstOpn, secondOpn, curOpr] = assertValidExpression(
+          $firstOpn,
+          $secondOpn,
+          $curOpr
+        );
 
         operandStack.push(evaluate(firstOpn, curOpr, secondOpn));
         lastOperator = operatorStack.at(-1);
@@ -105,18 +104,15 @@ const calcEngine = (input: string) => {
   console.log("operator stack", operatorStack);
 
   for (let i = operatorStack.length - 1; i >= 0; i--) {
-    const secondOpn = operandStack.pop();
-    const firstOpn = operandStack.pop();
-    const operator = operatorStack[i];
+    const $secondOpn = operandStack.pop();
+    const $firstOpn = operandStack.pop();
+    const $operator = operatorStack[i];
 
-    if (
-      firstOpn == null ||
-      secondOpn == null ||
-      !operator ||
-      operator === "("
-    ) {
-      throw new Error("Syntax error (invalid expression)");
-    }
+    const [firstOpn, secondOpn, operator] = assertValidExpression(
+      $firstOpn,
+      $secondOpn,
+      $operator
+    );
 
     operandStack.push(evaluate(firstOpn, operator, secondOpn));
   }
