@@ -13,7 +13,6 @@ export function evaluate(
   opr: ValidOperators,
   secondOpn: number
 ) {
-  console.log("eval called ", firstOpn, opr, secondOpn);
   switch (opr) {
     case "+":
       return firstOpn + secondOpn;

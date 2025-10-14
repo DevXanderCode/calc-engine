@@ -16,7 +16,6 @@ export const parseInput = (expression: string): Token[] => {
       continue;
     }
 
-    console.log("operator char", char);
     if (OPERATORS.has(char)) {
       res.push(char as Operators);
       i++;
