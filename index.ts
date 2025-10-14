@@ -7,9 +7,15 @@ const priorityMap = {
   "-": 1,
 } as const;
 
+const OPERATORS = new Set([...Object.keys(priorityMap), ")"]);
+
+const BLANKSPACE = [" ", "\r", "\t", "\n"];
+
 type Operators = [keyof typeof priorityMap][number];
 
 type ValidOperators = Exclude<Operators, "(">;
+
+type Token = number | Operators | ")";
 
 const isOperator = (s: any): s is Operators => {
   if (typeof s === "string" && priorityMap?.[s as Operators]) return true;
@@ -28,8 +34,97 @@ function assertValidExpression(
   return [firstOpn, secondOpn, operator];
 }
 
+/**
+ * Check if character is a digit
+ */
+function isDigit(char: string): boolean {
+  //   return char >= "0" && char <= "9";
+  return !isNaN(parseFloat(char)) && isFinite(Number(char));
+}
+
+const parseInput = (expression: string): Token[] => {
+  // "2.6 - 4 * 7 / 2 ^ 10" => [2.6, "-", 4, "*", 7, "/", 2, "^", 10]
+
+  const res: Token[] = [];
+
+  let i = 0;
+  while (i < expression.length) {
+    let char = expression[i];
+
+    if (char == null) return res;
+
+    if (BLANKSPACE.includes(char)) {
+      i++;
+      continue;
+    }
+
+    console.log("operator char", char);
+    if (OPERATORS.has(char)) {
+      res.push(char as Operators);
+      i++;
+      continue;
+    }
+
+    if (isDigit(char) || char == "." || char == "-") {
+      const number = parseNumber(expression, i);
+      if (number != null) {
+        res.push(number.value);
+        i = number.endIndex;
+        continue;
+      }
+    }
+
+    i++;
+  }
+
+  return res;
+};
+
+function parseNumber(expression: string, startIndex: number) {
+  let j = startIndex;
+  let $temp = "";
+
+  let hasDigits = false;
+  let hasDecimal = false;
+
+  while (j < expression.length) {
+    const char = expression[j];
+
+    if (char == null) {
+      j++;
+      continue;
+    }
+
+    if (isDigit(char)) {
+      hasDigits = true;
+      $temp += char;
+      j++;
+    } else if (char === "." && !hasDecimal) {
+      $temp += char;
+      hasDecimal = true;
+      j++;
+    } else {
+      break;
+    }
+  }
+
+  if (!hasDigits) {
+    return null;
+  }
+
+  const value = parseFloat($temp);
+
+  // Check if valid number
+  if (isNaN(value)) {
+    return null;
+  }
+
+  return { value, endIndex: j };
+}
+
 const calcEngine = (input: string) => {
-  // TODO: create function to parse input string to array
+  const parsedInput = parseInput(input);
+  console.log("parsed input", parsedInput);
   const test1 = [2, "+", 3, "*", 8, "/", 4, "^", 1, "-", 5, "^", 2]; // expected answer: -17
 
   const test2 = [4, "+", 18, "/", "(", 9, "-", 3, ")"]; // expected answer: 7
@@ -38,16 +133,16 @@ const calcEngine = (input: string) => {
 
   const test4 = [3, "+", 2, "-", 5, "+", 7]; // expected answer: 7
 
-  const test5 = [3, "+", 2, "-", 5, "-", 7]; // expected answer: -7
+  const test = [3, "+", 2, "-", 5, "-", 7]; // expected answer: -7
 
-  const test = ["(", 3, ")"];
+  const test6 = ["(", 2, -3, ")"]; // expected answer: -1
 
   //   const test = []; // ex
 
   const operandStack: number[] = [];
   const operatorStack: Operators[] = [];
 
-  for (const op of test) {
+  for (const op of parsedInput) {
     if (typeof op === "number") {
       operandStack.push(op);
     } else if (isOperator(op)) {
@@ -64,8 +159,10 @@ const calcEngine = (input: string) => {
           priorityMap[lastOperator] >= priorityMap[op]
         ) {
           const $secondOpn = operandStack.pop();
-          const $firstOpn = operandStack.pop();
           const $curOpr = operatorStack.pop();
+          const $firstOpn = ["-", "+"].includes(`${$curOpr}`)
+            ? operandStack.pop() || 0
+            : operandStack.pop();
 
           const [firstOpn, secondOpn, curOpr] = assertValidExpression(
             $firstOpn,
@@ -82,8 +179,10 @@ const calcEngine = (input: string) => {
       let lastOperator = operatorStack.at(-1);
       while (lastOperator && lastOperator !== "(") {
         const $secondOpn = operandStack.pop();
-        const $firstOpn = operandStack.pop();
         const $curOpr = operatorStack.pop();
+        const $firstOpn = ["-", "+"].includes(`${$curOpr}`)
+          ? operandStack.pop() || 0
+          : operandStack.pop();
 
         const [firstOpn, secondOpn, curOpr] = assertValidExpression(
           $firstOpn,
@@ -104,15 +203,20 @@ const calcEngine = (input: string) => {
   console.log("operator stack", operatorStack);
 
   for (let i = operatorStack.length - 1; i >= 0; i--) {
-    const $secondOpn = operandStack.pop();
-    const $firstOpn = operandStack.pop();
     const $operator = operatorStack[i];
+    const $secondOpn = operandStack.pop();
+    const $firstOpn = ["-", "+"].includes(`${$operator}`)
+      ? operandStack.pop() || 0
+      : operandStack.pop();
+
+    console.log("firstOpn", $firstOpn);
 
     const [firstOpn, secondOpn, operator] = assertValidExpression(
       $firstOpn,
       $secondOpn,
       $operator
     );
+    operatorStack.pop(); // clean up operator stack.
 
     operandStack.push(evaluate(firstOpn, operator, secondOpn));
   }
@@ -120,9 +224,9 @@ const calcEngine = (input: string) => {
   console.log("operand stack", operandStack);
   console.log("operator stack", operatorStack);
 
-  console.log("result", operandStack[0]);
+  console.log("result", addAll(operandStack));
 
-  return operandStack[0];
+  return addAll(operandStack);
 };
 
 function evaluate(
@@ -150,6 +254,25 @@ function evaluate(
   }
 }
 
-calcEngine("");
+function addAll(nums: number[]) {
+  let res = 0;
+  if (nums.length === 0) return 0;
+
+  for (const num of nums) {
+    res += num;
+  }
+
+  return res;
+}
+
+// calcEngine("4$.2 * 68 -67 + 1");
+// calcEngine("2.6 - 4 * 7 / 2 ^ 10");
+calcEngine("2.5 * (3 + 4) / 2");
+
+// console.log(
+//   "input",
+//   parseInput("2.5 * (3 + 4) / 2"),
+//   parseInput("2.5 * (3 + 4) / 2").length
+// );
 
 export default calcEngine;
