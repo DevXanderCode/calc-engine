@@ -4,10 +4,10 @@ A robust and efficient calculator engine built with TypeScript, leveraging the S
 
 ## Features
 
-*   Supports basic arithmetic operations: addition (`+`), subtraction (`-`), multiplication (`*`), and division (`/`).
-*   Handles operator precedence and parentheses using the classic Shunting-Yard algorithm.
-*   Type-safe and well-structured with TypeScript for maintainability and scalability.
-*   Easy to integrate into existing JavaScript/TypeScript projects.
+- Supports basic arithmetic operations: addition (`+`), subtraction (`-`), multiplication (`*`), and division (`/`).
+- Handles operator precedence and parentheses using the classic Shunting-Yard algorithm.
+- Type-safe and well-structured with TypeScript for maintainability and scalability.
+- Easy to integrate into existing JavaScript/TypeScript projects.
 
 ## Installation
 
@@ -24,29 +24,29 @@ yarn add calc-engine
 Here's how to use the `calc-engine` to evaluate mathematical expressions:
 
 ```typescript
-import { evaluate } from 'calc-engine';
+import { calcEngine } from "calc-engine";
 
 // Example 1: Basic arithmetic with precedence
-const result1 = evaluate("2 + 3 * 4"); // Expected: 14
+const result1 = calcEngine("2 + 3 * 4"); // Expected: 14
 console.log("2 + 3 * 4 =", result1);
 
 // Example 2: Using parentheses to alter precedence
-const result2 = evaluate("(2 + 3) * 4"); // Expected: 20
+const result2 = calcEngine("(2 + 3) * 4"); // Expected: 20
 console.log("(2 + 3) * 4 =", result2);
 
 // Example 3: More complex expression
-const result3 = evaluate("10 / 2 - 1 + (5 * 3)"); // Expected: 19
+const result3 = calcEngine("10 / 2 - 1 + (5 * 3)"); // Expected: 19
 console.log("10 / 2 - 1 + (5 * 3) =", result3);
 ```
 
 ## API Reference
 
-### `evaluate(expression: string): number`
+### `calcEngine(expression: string): number`
 
 Evaluates a mathematical expression string and returns the numerical result.
 
-*   `expression`: A string representing the mathematical expression to be evaluated.
-*   Returns: A `number` representing the result of the evaluation.
+- `expression`: A string representing the mathematical expression to be evaluated.
+- Returns: A `number` representing the result of the evaluation.
 
 ## Development
 
@@ -54,7 +54,7 @@ To set up the project for development:
 
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/your-username/calc-engine.git # Replace with actual repo URL
+    git clone https://github.com/DevXanderCode/calc-engine.git # Replace with actual repo URL
     cd calc-engine
     ```
 2.  Install dependencies:
