@@ -73,8 +73,11 @@ const calcEngine = (input) => {
     return addAll(operandStack);
 };
 // calcEngine("4$.2 * 68 -67 + 1");
+// calcEngine("-27 -++90 / 3");
 // calcEngine("2.6 - 4 * 7 / 2 ^ 10");
 // calcEngine("2.5 * (3 + 4) / 2");
-calcEngine("- ( 100 -, 16, ), /, 2");
+// calcEngine("- ( 100 -, 16, ), /, 2");
+// calcEngine("1$+2#+3$-5");
+calcEngine("2*(8-3)");
 export default calcEngine;
 //# sourceMappingURL=index.js.map
