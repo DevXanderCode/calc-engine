@@ -54,7 +54,7 @@ To set up the project for development:
 
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/DevXanderCode/calc-engine.git # Replace with actual repo URL
+    git clone https://github.com/DevXanderCode/calc-engine.git
     cd calc-engine
     ```
 2.  Install dependencies:
